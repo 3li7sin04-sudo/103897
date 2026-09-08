@@ -332,7 +332,7 @@ function updatePackageDropdowns() {
   // Add "Choose..." default option for Standalone
   const defaultSaOpt = document.createElement('option');
   defaultSaOpt.value = '';
-  defaultSaOpt.textContent = 'Choose...';
+  defaultSaOpt.textContent = 'Select Package...';
   defaultSaOpt.disabled = true;
   defaultSaOpt.selected = true;
   saPkgSelect.appendChild(defaultSaOpt);
