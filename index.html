@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Batelco Device Calculator</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <main class="container">
+    <div class="card">
+      <div class="header-row">
+        <h1>Batelco Device Calculator</h1>
+        <button type="button" id="adminToggleBtn" class="admin-toggle-btn">⚙️ Admin Control</button>
+      </div>
+
+      <!-- Admin Control Panel -->
+      <div id="adminPanel" class="admin-panel" style="display: none;">
+        <h3>Admin Controls: Packages & Device Bundles</h3>
+        <div class="admin-grid">
+          <!-- Add Package Control -->
+          <div class="admin-card">
+            <h4>Add / Update Package</h4>
+            <div class="form-group">
+              <label for="adminPkgType">Target Tab</label>
+              <select id="adminPkgType">
+                <option value="postpaid">Postpaid</option>
+                <option value="standalone">Standalone</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="adminPkgName">Package Name / Value</label>
+              <input type="text" id="adminPkgName" placeholder="e.g. 25 or Pro BD25">
+            </div>
+            <div class="form-group">
+              <label for="adminNewCap">New Customer Cap (BD)</label>
+              <input type="number" id="adminNewCap" placeholder="e.g. 400">
+            </div>
+            <div class="form-group">
+              <label for="adminExistingCap">Existing Customer Cap (BD)</label>
+              <input type="number" id="adminExistingCap" placeholder="e.g. 600">
+            </div>
+            <button type="button" id="addPackageBtn">Save Package</button>
+          </div>
+
+          <!-- Remove Package Control -->
+          <div class="admin-card">
+            <h4>Remove Package</h4>
+            <div class="form-group">
+              <label for="adminRemovePkgType">Target Tab</label>
+              <select id="adminRemovePkgType">
+                <option value="postpaid">Postpaid</option>
+                <option value="standalone">Standalone</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="adminRemovePkgSelect">Select Package to Remove</label>
+              <select id="adminRemovePkgSelect">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+            <button type="button" id="removePackageBtn" class="delete-btn">Delete Package</button>
+          </div>
+
+          <!-- Add Bundle Control -->
+          <div class="admin-card">
+            <h4>Add / Update Device Bundle</h4>
+            <div class="form-group">
+              <label for="adminBundleName">Bundle Name</label>
+              <input type="text" id="adminBundleName" placeholder="Enter full bundle name">
+            </div>
+            <div class="form-group">
+              <label for="adminBundlePrice">Device Price (BD)</label>
+              <input type="number" step="0.001" id="adminBundlePrice" placeholder="e.g. 450.000">
+            </div>
+            <button type="button" id="addBundleBtn">Save Bundle</button>
+          </div>
+
+          <!-- Remove Bundle Control -->
+          <div class="admin-card">
+            <h4>Remove Device Bundle</h4>
+            <div class="form-group">
+              <label for="adminRemoveBundleSelect">Select Bundle to Remove</label>
+              <select id="adminRemoveBundleSelect">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+            <button type="button" id="removeBundleBtn" class="delete-btn">Delete Bundle</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="postpaid">Postpaid</button>
+        <button class="tab-btn" data-tab="standalone">Standalone</button>
+      </div>
+
+      <!-- Tab Content: Postpaid -->
+      <div id="tab-postpaid" class="tab-content active">
+        <div class="horizontal-layout">
+          <!-- Left Side: Input Fields -->
+          <div class="inputs-section">
+            <div class="grid">
+              <div class="form-group">
+                <label for="customer">Customer Type</label>
+                <select id="customer">
+                  <option value="new">New</option>
+                  <option value="existing" selected>Existing</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="package">Package</label>
+                <select id="package">
+                  <option value="10.5">Basic Int BD10.5</option>
+                  <option value="11">Basic Int BD11</option>
+                  <option value="12.5" selected>Extra Int BD12.5</option>
+                  <option value="15">Extra Plus BD15</option>
+                  <option value="22">Extra Max BD22</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="risk">Risk</label>
+                <select id="risk">
+                  <option value="0" selected>No Risk</option>
+                  <option value="2" >Low Risk</option>
+                  <option value="4">Medium Risk</option>
+                  <option value="8">High Risk</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="term">Term (Months)</label>
+                <select id="term">
+                  <option value="12">12</option>
+                  <option value="18">18</option>
+                  <option value="24" selected>24</option>
+                </select>
+              </div>
+
+              <div class="form-group full-width">
+                <label for="insurance">Insurance Plan</label>
+                <select id="insurance">
+                  <option value="0">None</option>
+                  <option value="device" selected>Device Insure</option>
+                  <option value="international">Device Insure International</option>
+                  <option value="vip">Device Insure VIP</option>
+                </select>
+              </div>
+
+              <div class="form-group full-width">
+                <label for="deviceBundle">Device Bundle</label>
+                <select id="deviceBundle">
+                  <option value="">Search bundle...</option>
+                </select>
+              </div>
+
+              <div class="form-group full-width">
+                <label for="device">Device Amount (BD)</label>
+                <input 
+                  id="device" 
+                  type="number" 
+                  min="0" 
+                  step="0.001" 
+                  placeholder="Enter device amount manually"
+                >
+              </div>
+
+              <div class="form-group full-width checkbox-reset-row">
+                <div class="checkbox-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="appleCharges">
+                    <span>Apple Monthly (+BD 1.100)</span>
+                  </label>
+
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="regFeeCheck">
+                    <span>Registration Fee (+BD 5.500)</span>
+                  </label>
+                </div>
+                
+                <button type="button" id="resetBtn" class="reset-btn-small">Reset</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Side: Calculated Summary -->
+          <div class="results-section">
+            <div class="results">
+              <div class="row"><span>Device Cap</span><strong id="cap">BD 0.00</strong></div>
+              <div class="row"><span>More Than Cap</span><strong id="gap">BD 0.00</strong></div>
+              <div class="row"><span>Device Monthly</span><strong id="deviceMonthly">BD 0.00</strong></div>
+              <div class="row"><span>Insurance Monthly</span><strong id="insuranceAmount">BD 0.00</strong></div>
+              <div class="row"><span>Risk Down Payment</span><strong id="riskDP">BD 0.00</strong></div>
+              <div class="row"><span>Device VAT</span><strong id="vat">BD 0.00</strong></div>
+              <div class="row"><span>Insurance VAT</span><strong id="insuranceVat">BD 0.00</strong></div>
+              
+              <div class="summary-blocks">
+                <div class="total">
+                  <span>Total Upfront</span>
+                  <span id="total">BD 0.00</span>
+                </div>
+
+                <div class="total total-monthly">
+                  <span>Total Monthly</span>
+                  <span id="monthly">BD 0.00</span>
+                </div>
+
+                <div class="total total-monthly">
+                  <span>Total Monthly Included Rental Charges</span>
+                  <span id="monthlyWithRental">BD 0.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Standalone -->
+      <div id="tab-standalone" class="tab-content">
+        <div class="horizontal-layout">
+          <!-- Left Side: Input Fields -->
+          <div class="inputs-section">
+            <div class="grid">
+              <div class="form-group">
+                <label for="sa_customer">Customer Type</label>
+                <select id="sa_customer">
+                  <option value="new">New</option>
+                  <option value="existing" selected>Existing</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="sa_package">Standalone Package</label>
+                <select id="sa_package">
+                  <option value="16" selected>16 BD</option>
+                  <option value="18.5">18.5 BD</option>
+                  <option value="30">30 BD</option>
+                  <option value="44">44 BD</option>
+                  <option value="110">110 BD</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="sa_risk">Risk</label>
+                <select id="sa_risk">
+                  <option value="0" selected>No Risk</option>
+                  <option value="1">Low Risk (1 Mo)</option>
+                  <option value="2">Medium Risk (2 Mo)</option>
+                  <option value="3">High Risk (3 Mo)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="sa_term">Term (Months)</label>
+                <select id="sa_term">
+                  <option value="12">12</option>
+                  <option value="18">18</option>
+                  <option value="24" selected>24</option>
+                </select>
+              </div>
+
+              <div class="form-group full-width">
+                <label for="sa_insurance">Insurance Plan</label>
+                <select id="sa_insurance">
+                  <option value="0" selected>None</option>
+                  <option value="device">Device Insure</option>
+                  <option value="international">Device Insure International</option>
+                  <option value="vip">Device Insure VIP</option>
+                </select>
+              </div>
+
+              <div class="form-group full-width">
+                <label for="sa_device">Device Amount (BD)</label>
+                <input 
+                  id="sa_device" 
+                  type="number" 
+                  min="0" 
+                  step="0.001" 
+                  placeholder="Enter device amount manually"
+                >
+              </div>
+
+              <div class="form-group full-width checkbox-reset-row">
+                <div class="checkbox-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="sa_regFeeCheck">
+                    <span>Registration Fee (+BD 5.500)</span>
+                  </label>
+                </div>
+                
+                <button type="button" id="sa_resetBtn" class="reset-btn-small">Reset</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Side: Calculated Summary -->
+          <div class="results-section">
+            <div class="results">
+              <div class="row"><span>Device Cap</span><strong id="sa_cap">BD 0.00</strong></div>
+              <div class="row"><span>More Than Cap</span><strong id="sa_gap">BD 0.00</strong></div>
+              <div class="row"><span>Device Monthly</span><strong id="sa_deviceMonthly">BD 0.00</strong></div>
+              <div class="row"><span>Insurance Monthly</span><strong id="sa_insuranceAmount">BD 0.00</strong></div>
+              <div class="row"><span>Risk Down Payment</span><strong id="sa_riskDP">BD 0.00</strong></div>
+              <div class="row"><span>Device VAT</span><strong id="sa_vat">BD 0.00</strong></div>
+              <div class="row"><span>Insurance VAT</span><strong id="sa_insuranceVat">BD 0.00</strong></div>
+              
+              <div class="summary-blocks">
+                <div class="total">
+                  <span>Total Upfront</span>
+                  <span id="sa_total">BD 0.00</span>
+                </div>
+
+                <div class="total total-monthly">
+                  <span>Total Monthly</span>
+                  <span id="sa_monthly">BD 0.00</span>
+                </div>
+
+                <div class="total total-monthly">
+                  <span>Total Monthly Included Rental Charges</span>
+                  <span id="sa_monthlyWithRental">BD 0.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signature Section -->
+      <div class="signature-section">
+        <p>Created by Ali Husain Ahmed 103879</p>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
