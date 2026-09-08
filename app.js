@@ -152,7 +152,7 @@ function calculateTotal() {
   const riskMonths = Number(elements.risk.value); 
   const customerType = elements.customer.value;
   const selectedPkgKey = elements.package.value;
-  const packageRentalFee = parseFloat(selectedPkgKey) || 0;
+  const packageRentalFee = selectedPkgKey ? (parseFloat(selectedPkgKey) || 0) : 0;
   const insuranceType = elements.insurance.value;
   const addAppleCharges = elements.appleCharges ? elements.appleCharges.checked : false;
   const addRegFee = elements.regFeeCheck ? elements.regFeeCheck.checked : false;
@@ -173,7 +173,7 @@ function calculateTotal() {
     }
   }
 
-  const amountToFinance = Math.min(deviceVal, cap);
+  const amountToFinance = selectedPkgKey ? Math.min(deviceVal, cap) : deviceVal;
   const baseDeviceMonthly = termVal > 0 ? amountToFinance / termVal : 0;
   
   let deviceMonthly = baseDeviceMonthly;
@@ -185,12 +185,12 @@ function calculateTotal() {
   const riskDP = baseDeviceMonthly * riskMonths;
   const regFee = addRegFee ? 5.500 : 0;
 
-  const totalUpfront = insuranceVat + vat + riskDP + gap;
+  const totalUpfront = insuranceVat + vat + riskDP + (selectedPkgKey ? gap : 0);
   const totalMonthly = deviceMonthly + insuranceMonthly + regFee;
   const totalMonthlyWithRental = totalMonthly + packageRentalFee;
 
-  elements.cap.textContent = formatBD(cap);
-  elements.gap.textContent = formatBD(gap);
+  elements.cap.textContent = selectedPkgKey ? formatBD(cap) : "BD 0.00";
+  elements.gap.textContent = selectedPkgKey ? formatBD(gap) : "BD 0.00";
   elements.deviceMonthly.textContent = formatBD(deviceMonthly);
   elements.insuranceAmount.textContent = formatBD(insuranceMonthly);
   elements.riskDP.textContent = formatBD(riskDP);
@@ -208,13 +208,13 @@ function calculateStandaloneTotal() {
   const riskMonths = Number(elements.sa_risk.value);
   const customerType = elements.sa_customer.value;
   const selectedPkgKey = elements.sa_package.value;
-  const packageRentalFee = parseFloat(selectedPkgKey) || 0;
+  const packageRentalFee = selectedPkgKey ? (parseFloat(selectedPkgKey) || 0) : 0;
   const insuranceType = elements.sa_insurance.value;
   const addRegFee = elements.sa_regFeeCheck ? elements.sa_regFeeCheck.checked : false;
 
   const pkgObj = findPkg(selectedPkgKey, 'standalone');
   const cap = pkgObj ? pkgObj[customerType] : Infinity;
-  const gap = isFinite(cap) ? Math.max(0, deviceVal - cap) : 0;
+  const gap = selectedPkgKey && isFinite(cap) ? Math.max(0, deviceVal - cap) : 0;
 
   let insuranceVat = 0;
   let insuranceMonthly = 0;
@@ -228,19 +228,19 @@ function calculateStandaloneTotal() {
     }
   }
 
-  const amountToFinance = isFinite(cap) ? Math.min(deviceVal, cap) : deviceVal;
+  const amountToFinance = selectedPkgKey ? (isFinite(cap) ? Math.min(deviceVal, cap) : deviceVal) : deviceVal;
   const deviceMonthly = termVal > 0 ? amountToFinance / termVal : 0;
   
   const vat = deviceVal * 0.10;
   const riskDP = deviceMonthly * riskMonths;
   const regFee = addRegFee ? 5.500 : 0;
   
-  const totalUpfront = insuranceVat + vat + riskDP + gap;
+  const totalUpfront = insuranceVat + vat + riskDP + (selectedPkgKey ? gap : 0);
   const totalMonthly = deviceMonthly + insuranceMonthly + regFee;
   const totalMonthlyWithRental = totalMonthly + packageRentalFee;
 
-  elements.sa_cap.textContent = formatBD(cap);
-  elements.sa_gap.textContent = formatBD(gap);
+  elements.sa_cap.textContent = selectedPkgKey ? formatBD(cap) : "BD 0.00";
+  elements.sa_gap.textContent = selectedPkgKey ? formatBD(gap) : "BD 0.00";
   elements.sa_deviceMonthly.textContent = formatBD(deviceMonthly);
   elements.sa_insuranceAmount.textContent = formatBD(insuranceMonthly);
   elements.sa_riskDP.textContent = formatBD(riskDP);
@@ -306,6 +306,14 @@ function updatePackageDropdowns() {
   const currentPkg = pkgSelect.value;
   pkgSelect.innerHTML = '';
   
+  // Add "Choose..." default option
+  const defaultOpt = document.createElement('option');
+  defaultOpt.value = '';
+  defaultOpt.textContent = 'Select Package..';
+  defaultOpt.disabled = true;
+  defaultOpt.selected = true;
+  pkgSelect.appendChild(defaultOpt);
+
   PKG_CAPS.sort((a, b) => parseFloat(a.key) - parseFloat(b.key));
   PKG_CAPS.forEach(pkg => {
     const opt = document.createElement('option');
@@ -315,14 +323,20 @@ function updatePackageDropdowns() {
   });
   if (currentPkg && PKG_CAPS.some(p => p.key === currentPkg)) {
     pkgSelect.value = currentPkg;
-  } else if (PKG_CAPS.length > 0) {
-    pkgSelect.value = PKG_CAPS[0].key;
   }
 
   const saPkgSelect = elements.sa_package;
   const currentSaPkg = saPkgSelect.value;
   saPkgSelect.innerHTML = '';
   
+  // Add "Choose..." default option for Standalone
+  const defaultSaOpt = document.createElement('option');
+  defaultSaOpt.value = '';
+  defaultSaOpt.textContent = 'Choose...';
+  defaultSaOpt.disabled = true;
+  defaultSaOpt.selected = true;
+  saPkgSelect.appendChild(defaultSaOpt);
+
   SA_PKG_CAPS.sort((a, b) => parseFloat(a.key) - parseFloat(b.key));
   SA_PKG_CAPS.forEach(pkg => {
     const opt = document.createElement('option');
@@ -332,8 +346,6 @@ function updatePackageDropdowns() {
   });
   if (currentSaPkg && SA_PKG_CAPS.some(p => p.key === currentSaPkg)) {
     saPkgSelect.value = currentSaPkg;
-  } else if (SA_PKG_CAPS.length > 0) {
-    saPkgSelect.value = SA_PKG_CAPS[0].key;
   }
 
   updateAdminRemovePackageDropdown();
@@ -485,7 +497,7 @@ function setupEventListeners() {
 
   elements.resetBtn.addEventListener('click', () => {
     elements.customer.value = 'existing';
-    elements.package.value = PKG_CAPS[0] ? PKG_CAPS[0].key : '10.5';
+    elements.package.value = ''; // Reset to Choose...
     elements.risk.value = '0'; // Default to No Risk
     elements.term.value = '24';
     elements.insurance.value = '0';
@@ -510,7 +522,7 @@ function setupEventListeners() {
 
   elements.sa_resetBtn.addEventListener('click', () => {
     elements.sa_customer.value = 'existing';
-    elements.sa_package.value = SA_PKG_CAPS[0] ? SA_PKG_CAPS[0].key : '16';
+    elements.sa_package.value = ''; // Reset to Choose...
     elements.sa_risk.value = '0';
     elements.sa_term.value = '24';
     elements.sa_insurance.value = '0';
@@ -541,9 +553,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (elements.sa_insurance) elements.sa_insurance.value = '0';
 
   updatePackageDropdowns();
-
-  if (PKG_CAPS.length > 0) elements.package.value = PKG_CAPS[0].key;
-  if (SA_PKG_CAPS.length > 0) elements.sa_package.value = SA_PKG_CAPS[0].key;
 
   initTomSelect();
   setupEventListeners();
