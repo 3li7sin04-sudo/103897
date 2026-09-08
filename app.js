@@ -1,5 +1,28 @@
-// --- Data Configurations ---
-let BUNDLES_DATA = {
+// --- Persistent Storage Helpers ---
+const STORAGE_KEYS = {
+  postpaid: 'batelco_postpaid_pkgs_v1',
+  standalone: 'batelco_standalone_pkgs_v1',
+  bundles: 'batelco_bundles_v1'
+};
+
+// Default Initial Data
+const DEFAULT_PKG_CAPS = [
+  { key: '10.5', new: 200, existing: 300, label: 'Basic Int BD10.5' },
+  { key: '11', new: 400, existing: 500, label: 'Basic Int BD11' },
+  { key: '12.5', new: 400, existing: 500, label: 'Extra Int BD12.5' },
+  { key: '15', new: 400, existing: 600, label: 'Extra Plus BD15' },
+  { key: '22', new: 400, existing: 600, label: 'Extra Max BD22' }
+];
+
+const DEFAULT_SA_PKG_CAPS = [
+  { key: '16', new: 800, existing: 800, label: '16 BD' },
+  { key: '18.5', new: 800, existing: 800, label: '18.5 BD' },
+  { key: '30', new: 1000, existing: 1000, label: '30 BD' },
+  { key: '44', new: 1000, existing: 1000, label: '44 BD' },
+  { key: '110', new: Infinity, existing: Infinity, label: '110 BD' }
+];
+
+const DEFAULT_BUNDLES = {
   "Summer Cash iPhone 17 Pro Max 256GB + Silicone Case": 486.112,
   "Summer Inst 12M iPhone 17 Pro Max 256GB + Silicone Case": 486.112,
   "Summer Inst 18M iPhone 17 Pro Max 256GB + Silicone Case": 486.112,
@@ -13,23 +36,27 @@ let BUNDLES_DATA = {
   "Inst 24M iPhone 17 Pro Max 256GB": 465.58
 };
 
-// Postpaid Package List
-let PKG_CAPS = [
-  { key: '10.5', new: 200, existing: 300, label: 'Basic Int BD10.5' },
-  { key: '11', new: 400, existing: 500, label: 'Basic Int BD11' },
-  { key: '12.5', new: 400, existing: 500, label: 'Extra Int BD12.5' },
-  { key: '15', new: 400, existing: 600, label: 'Extra Plus BD15' },
-  { key: '22', new: 400, existing: 600, label: 'Extra Max BD22' }
-];
+// Load saved data or fallback to defaults
+let PKG_CAPS = JSON.parse(localStorage.getItem(STORAGE_KEYS.postpaid)) || DEFAULT_PKG_CAPS;
+let SA_PKG_CAPS = JSON.parse(localStorage.getItem(STORAGE_KEYS.standalone)) || DEFAULT_SA_PKG_CAPS;
+let BUNDLES_DATA = JSON.parse(localStorage.getItem(STORAGE_KEYS.bundles)) || DEFAULT_BUNDLES;
 
-// Standalone Package List
-let SA_PKG_CAPS = [
-  { key: '16', new: 800, existing: 800, label: '16 BD' },
-  { key: '18.5', new: 800, existing: 800, label: '18.5 BD' },
-  { key: '30', new: 1000, existing: 1000, label: '30 BD' },
-  { key: '44', new: 1000, existing: 1000, label: '44 BD' },
-  { key: '110', new: Infinity, existing: Infinity, label: '110 BD' }
-];
+// Handle Infinity serialization issue in JSON
+function fixInfinity(list) {
+  return list.map(p => ({
+    ...p,
+    new: p.new === null || p.new === 'Infinity' ? Infinity : p.new,
+    existing: p.existing === null || p.existing === 'Infinity' ? Infinity : p.existing
+  }));
+}
+PKG_CAPS = fixInfinity(PKG_CAPS);
+SA_PKG_CAPS = fixInfinity(SA_PKG_CAPS);
+
+function saveToLocalStorage() {
+  localStorage.setItem(STORAGE_KEYS.postpaid, JSON.stringify(PKG_CAPS));
+  localStorage.setItem(STORAGE_KEYS.standalone, JSON.stringify(SA_PKG_CAPS));
+  localStorage.setItem(STORAGE_KEYS.bundles, JSON.stringify(BUNDLES_DATA));
+}
 
 const INSURANCE_VAT_PLANS = {
   device: { 12: 3.90, 18: 5.85, 24: 7.80 },
@@ -284,9 +311,13 @@ function updatePackageDropdowns() {
     const opt = document.createElement('option');
     opt.value = pkg.key;
     opt.textContent = pkg.label;
-    if (pkg.key === currentPkg) opt.selected = true;
     pkgSelect.appendChild(opt);
   });
+  if (currentPkg && PKG_CAPS.some(p => p.key === currentPkg)) {
+    pkgSelect.value = currentPkg;
+  } else if (PKG_CAPS.length > 0) {
+    pkgSelect.value = PKG_CAPS[0].key;
+  }
 
   const saPkgSelect = elements.sa_package;
   const currentSaPkg = saPkgSelect.value;
@@ -297,9 +328,13 @@ function updatePackageDropdowns() {
     const opt = document.createElement('option');
     opt.value = pkg.key;
     opt.textContent = pkg.label;
-    if (pkg.key === currentSaPkg) opt.selected = true;
     saPkgSelect.appendChild(opt);
   });
+  if (currentSaPkg && SA_PKG_CAPS.some(p => p.key === currentSaPkg)) {
+    saPkgSelect.value = currentSaPkg;
+  } else if (SA_PKG_CAPS.length > 0) {
+    saPkgSelect.value = SA_PKG_CAPS[0].key;
+  }
 
   updateAdminRemovePackageDropdown();
 }
@@ -344,7 +379,7 @@ function setupEventListeners() {
 
     names.forEach(name => {
       const keyVal = name.replace(/[^0-9.]/g, '') || name;
-      const customLabel = name; // Exact name, nothing added
+      const customLabel = name; 
 
       const existingIndex = targetList.findIndex(p => p.key === keyVal || p.label === customLabel);
 
@@ -355,8 +390,9 @@ function setupEventListeners() {
       }
     });
 
+    saveToLocalStorage();
     updatePackageDropdowns();
-    alert(`Package(s) successfully added/updated!`);
+    alert(`Package(s) successfully added/updated and saved permanently!`);
     elements.adminPkgName.value = '';
     elements.adminNewCap.value = '';
     elements.adminExistingCap.value = '';
@@ -386,6 +422,7 @@ function setupEventListeners() {
       targetList.splice(index, 1);
     }
 
+    saveToLocalStorage();
     updatePackageDropdowns();
     alert(`Package "${removedLabel}" successfully removed!`);
     calculateTotal();
@@ -402,6 +439,7 @@ function setupEventListeners() {
     }
 
     BUNDLES_DATA[name] = price;
+    saveToLocalStorage();
     initTomSelect();
     alert(`Device Bundle "${name}" successfully added!`);
     elements.adminBundleName.value = '';
@@ -422,6 +460,7 @@ function setupEventListeners() {
     }
 
     delete BUNDLES_DATA[bundleName];
+    saveToLocalStorage();
     initTomSelect();
     alert(`Device Bundle "${bundleName}" successfully removed!`);
   });
