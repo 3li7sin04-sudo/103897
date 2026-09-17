@@ -1,6 +1,6 @@
 :root {
-  --navy: #1D253D;         /* Beyon Dark Navy */
-  --red: #E4003A;          /* Beyon Red */
+  --navy: #1D253D;          /* Beyon Dark Navy */
+  --red: #E4003A;           /* Beyon Red */
   --card-bg: #27314E;      /* Card background */
   --text-color: #FFFFFF;   /* Primary Text */
   --text-muted: #A0ACC0;   /* Secondary Text */
@@ -391,6 +391,11 @@ button[type="submit"]:hover {
   border-radius: 8px !important;
 }
 
+.ts-control input {
+  color: var(--text-color) !important;
+  background-color: transparent !important;
+}
+
 .ts-dropdown {
   background-color: var(--card-bg) !important;
   color: var(--text-color) !important;
@@ -399,9 +404,20 @@ button[type="submit"]:hover {
   border-radius: 8px !important;
 }
 
+.ts-dropdown input {
+  color: var(--text-color) !important;
+  background-color: var(--navy) !important;
+}
+
 .ts-dropdown .option {
   color: var(--text-color) !important;
   padding: 12px 18px !important;
+}
+
+.ts-dropdown .option:hover,
+.ts-dropdown .option.active {
+  background-color: transparent !important;
+  color: var(--text-color) !important;
 }
 
 .bundle-option {
